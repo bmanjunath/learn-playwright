@@ -1,15 +1,21 @@
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './basePage';
+import { test, expect } from '@playwright/test';
+import { HomePage } from '../pages/homePage';
+import { SearchResultsPage } from '../pages/searchResultsPage';
 
-export class SearchResultsPage extends BasePage {
-  readonly firstResultTitle: Locator;
+const BOOK_NAME = process.env.BOOK_NAME || 'Harry Potter';
 
-  constructor(page: Page) {
-    super(page);
-    this.firstResultTitle = page.locator('div._4rR01T').first(); // first book title
-  }
+test.describe('Flipkart Book Search POM Demo', () => {
+  test('should search for a book and verify first result', async ({ page }) => {
+    const homePage = new HomePage(page);
+    const searchResultsPage = new SearchResultsPage(page);
 
-  async getFirstBookTitle(): Promise<string> {
-    return (await this.getText(this.firstResultTitle)) || '';
-  }
-}
+    await homePage.navigateTo('/');
+    await homePage.closeLoginPopupIfPresent();
+    await homePage.searchBook(BOOK_NAME);
+
+    const firstBookTitle = await searchResultsPage.getFirstBookTitle();
+    console.log('First book found:', firstBookTitle);
+
+    expect(firstBookTitle.toLowerCase()).toContain(BOOK_NAME.toLowerCase());
+  });
+});
